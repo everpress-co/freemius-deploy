@@ -1,9 +1,11 @@
-FROM php:7.4-cli
+FROM php:8.3-cli-bookworm
 
-# install git (update + install in one layer so apt indexes stay fresh)
-RUN apt-get update \
-	&& apt-get install -y --no-install-recommends git \
-	&& rm -rf /var/lib/apt/lists/*
+# php:7.4-cli (Bullseye) fails apt installs with debian-security 404s.
+# Fetch a pinned Freemius PHP SDK release — no apt/git needed.
+ADD https://github.com/Freemius/freemius-php-sdk/archive/refs/tags/1.1.1.tar.gz /tmp/freemius-php-sdk.tar.gz
+RUN mkdir -p /freemius-php-api \
+	&& tar -xzf /tmp/freemius-php-sdk.tar.gz -C /freemius-php-api --strip-components=1 \
+	&& rm /tmp/freemius-php-sdk.tar.gz
 
 ARG file_name
 ARG version
@@ -12,9 +14,8 @@ ARG release_mode
 
 COPY deploy.php /deploy.php
 COPY ${file_name} /${file_name}
-RUN git clone https://github.com/Freemius/freemius-php-sdk.git /freemius-php-api
 
 EXPOSE 80/tcp
 EXPOSE 80/udp
 
-CMD php /deploy.php
+CMD ["php", "/deploy.php"]
