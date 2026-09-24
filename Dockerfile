@@ -1,9 +1,9 @@
 FROM php:7.4-cli
 
-# install git
-RUN apt-get update
-RUN apt-get install -y git
-
+# install git (update + install in one layer so apt indexes stay fresh)
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends git \
+	&& rm -rf /var/lib/apt/lists/*
 
 ARG file_name
 ARG version
